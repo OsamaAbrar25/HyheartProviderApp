@@ -8,7 +8,9 @@ import CreditHistory from '../screens/CreditHistory';
 import Settings from '../screens/Settings';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import Icon2 from 'react-native-vector-icons/Ionicons';
-import UserProfile from '../screens/UserProfile';
+import Profile from '../screens/Profile';
+import EditProfile from '../screens/Profile/EditProfile';
+import Calling from '../screens/Calling';
 
 import * as ZIM from 'zego-zim-react-native';
 import ZegoUIKitPrebuiltCallService, {
@@ -19,6 +21,7 @@ import ZegoUIKitPrebuiltCallService, {
   ZegoMenuBarButtonName,
   ZegoUIKitPrebuiltCallFloatingMinimizedView,
 } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import SignIn from '../screens/SignIn';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -48,7 +51,7 @@ const SettingsStack = () => (
   </Stack.Navigator>
 );
 
-const MainStack = () => (
+const MainTabNavigator = () => (
   <Tab.Navigator
     screenOptions={({ route }) => ({
       headerShown: false,
@@ -112,25 +115,26 @@ const RootStack = () => {
   // const isLoggedIn = userData.jwt;
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false}}>
       {/* // <Stack.Screen name="AuthStack" component={AuthStack} /> */}
 
-      <Stack.Screen
-        name="MainStack"
-        component={MainStack}
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="SignIn" component={SignIn} />
 
-      <Stack.Screen name="UserProfile" component={UserProfile} options={{ headerShown: false }} />
+      <Stack.Screen name="MainTabNavigator" component={MainTabNavigator} />
+
+      {/* <Stack.Screen name="ProviderProfile" component={ProviderProfile} /> */}
+      {/* <Stack.Screen name="Profile" component={Profile} /> */}
+      {/* <Stack.Screen name="EditProfile" component={EditProfile} /> */}
+      {/* <Stack.Screen name="BuyCredits" component={BuyCredits} /> */}
+      <Stack.Screen name="Calling" component={Calling} />
+      
 
       <Stack.Screen
-        options={{ headerShown: false }}
         // DO NOT change the name 
         name="ZegoUIKitPrebuiltCallWaitingScreen"
         component={ZegoUIKitPrebuiltCallWaitingScreen}
       />
       <Stack.Screen
-        options={{ headerShown: false }}
         // DO NOT change the name
         name="ZegoUIKitPrebuiltCallInCallScreen"
         component={ZegoUIKitPrebuiltCallInCallScreen}

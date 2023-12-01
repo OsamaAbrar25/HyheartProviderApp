@@ -5,8 +5,8 @@ import { ZegoUIKitPrebuiltCall, ONE_ON_ONE_VOICE_CALL_CONFIG } from '@zegocloud/
 
 const appID = 1249344658;
 const appSign = "2ed2bb743e506fe41e001c9a0db1bedb84a7134a6d6808ff544a640fdfa4d181";
-const userID = 2;
-const userName = "Test User";
+const userID = "2";
+const userName = "Provider User";
 const callID = "123";
 
 const Calling = ({ navigation }) => {

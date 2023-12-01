@@ -17,15 +17,19 @@ import ZegoUIKitPrebuiltCallService, {
   ZegoMenuBarButtonName,
   ZegoUIKitPrebuiltCallFloatingMinimizedView,
 } from '@zegocloud/zego-uikit-prebuilt-call-rn';
+import { useSelector } from 'react-redux';
 
 const appID = 1249344658;
 const appSign = "2ed2bb743e506fe41e001c9a0db1bedb84a7134a6d6808ff544a640fdfa4d181";
-const userID = 2;
-const userName = "Test User";
+const userID = "2";
+const userName = "Provider User";
 
 
 
 const Home = ({ navigation }) => {
+
+  const name = useSelector(state => state.auth.userData.name);
+  const photoURL = useSelector(state => state.auth.userData.photoURL)
 
   useEffect(() => {
     try {
@@ -38,7 +42,7 @@ const Home = ({ navigation }) => {
         {
           ringtoneConfig: {
             incomingCallFileName: 'rutu.mp3',
-            outgoingCallFileName: 'rutu.mp3',
+            outgoingCallFileName: 'ringing.mp3',
           },
           // notifyWhenAppRunningInBackgroundOrQuit: true,
           androidNotificationConfig: {
@@ -71,11 +75,11 @@ const Home = ({ navigation }) => {
             size={'medium'}
             avatarStyle={{ borderWidth: 3, borderColor: 'white' }}
             source={{
-              uri: 'https://randomuser.me/api/portraits/men/96.jpg',
+              uri: photoURL,
             }}
           />
           <View>
-            <Text style={{ fontWeight: 'bold', color: 'black' }}>Hi! Osama</Text>
+            <Text style={{ fontWeight: 'bold', color: 'black' }}>Hi! {name}</Text>
             <Text style={{ fontSize: 12, color: 'gray' }}>Your Credits: 12</Text>
           </View>
         </View>
@@ -90,7 +94,7 @@ const Home = ({ navigation }) => {
 
       <ZegoSendCallInvitationButton
         invitees={[{
-          userID: 1, userName: "Test User"
+          userID: "1", userName: "Test User"
         }]}
         isVideoCall={false}
         resourceID={"zego_data"} // Please fill in the resource ID name that has been configured in the ZEGOCLOUD's console here.

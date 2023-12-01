@@ -14,6 +14,9 @@ import ZegoUIKitPrebuiltCallService, {
 } from '@zegocloud/zego-uikit-prebuilt-call-rn';
 
 import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistor, store } from './src/store';
 
 function App(): JSX.Element {
   // const isDarkMode = useColorScheme() === 'dark';
@@ -24,10 +27,14 @@ function App(): JSX.Element {
 
   return (
     // <SafeAreaView style={backgroundStyle}>
-    <NavigationContainer>
-      <ZegoCallInvitationDialog />
-      <MainNavigation />
-    </NavigationContainer>
+    <Provider store={store}>
+      <PersistGate loading={null} persistor={persistor}>
+        <NavigationContainer>
+          <ZegoCallInvitationDialog />
+          <MainNavigation />
+        </NavigationContainer>
+      </PersistGate>
+    </Provider>
     // </SafeAreaView>
   );
 }
