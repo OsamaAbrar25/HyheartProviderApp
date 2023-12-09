@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList } from "react-native";
-import { Button, ListItem, Avatar } from "@rneui/themed";
+import { Button, ListItem, Avatar, Switch } from "@rneui/themed";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import auth from "@react-native-firebase/auth";
 import * as ZIM from "zego-zim-react-native";
@@ -27,6 +27,8 @@ const appSign =
 
 const Home: React.FC<HomeProps> = ({ navigation }) => {
 
+  const [checked, setChecked] = useState(false);
+
   const dispatch = useDispatch();
   const userdata = useSelector((state: { auth: AuthState }) => state.auth.userData);
   console.log("🔴" + JSON.stringify(userdata));
@@ -49,6 +51,11 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       console.error("Error while logging out:", error);
     }
   };
+
+  const toggleSwitch = () => {
+    setChecked(!checked);
+  };
+
   useEffect(() => {
     if (data) {
       dispatch(
@@ -114,6 +121,14 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       </View>
 
       <View style={{ padding: 8 }}>
+
+        <View style={{ padding: 16, marginBottom: 16, borderWidth: 2, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Text>Visibilty</Text>
+          <Switch
+            value={checked}
+            onValueChange={(value) => setChecked(value)}
+          />
+        </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
           <Text style={{ fontWeight: "bold", color: "black" }}>Analytics</Text>
