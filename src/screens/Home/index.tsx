@@ -1,35 +1,67 @@
-import { Avatar, Button, ListItem } from '@rneui/themed';
-import React, { useEffect, useRef, useState } from 'react';
-import { SafeAreaView, View, Text } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome6';
-import { PermissionsAndroid, Platform } from 'react-native';
-
-import { ScrollView } from 'react-native';
-import { StyleSheet } from 'react-native';
-
-import * as ZIM from 'zego-zim-react-native';
-import * as ZPNs from 'zego-zpns-react-native';
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, FlatList } from "react-native";
+import { Button, ListItem, Avatar } from "@rneui/themed";
+import Icon from "react-native-vector-icons/FontAwesome6";
+import auth from "@react-native-firebase/auth";
+import * as ZIM from "zego-zim-react-native";
+import * as ZPNs from "zego-zpns-react-native";
 import ZegoUIKitPrebuiltCallService, {
-  ZegoCallInvitationDialog,
-  ZegoUIKitPrebuiltCallWaitingScreen,
-  ZegoUIKitPrebuiltCallInCallScreen,
   ZegoSendCallInvitationButton,
-  ZegoMenuBarButtonName,
-  ZegoUIKitPrebuiltCallFloatingMinimizedView,
-} from '@zegocloud/zego-uikit-prebuilt-call-rn';
-import { useSelector } from 'react-redux';
+} from "@zegocloud/zego-uikit-prebuilt-call-rn";
+import {
+  useGetZegoTokenQuery,
+  useGetProvidersQuery,
+  useGetProfileQuery,
+} from "../../apis/user";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "../../store";
+import { AuthState, storeUserData } from "../../store/slices/authSlice";
+
+interface HomeProps {
+  navigation: any;
+}
 
 const appID = 1249344658;
-const appSign = "2ed2bb743e506fe41e001c9a0db1bedb84a7134a6d6808ff544a640fdfa4d181";
-const userID = "2";
-const userName = "Provider User";
+const appSign =
+  "2ed2bb743e506fe41e001c9a0db1bedb84a7134a6d6808ff544a640fdfa4d181";
 
+const Home: React.FC<HomeProps> = ({ navigation }) => {
 
+  const dispatch = useDispatch();
+  const userdata = useSelector((state: { auth: AuthState }) => state.auth.userData);
+  console.log("🔴" + JSON.stringify(userdata));
 
-const Home = ({ navigation }) => {
+  const userID: string = userdata.id;
 
-  const name = useSelector(state => state.auth.userData.name);
-  const photoURL = useSelector(state => state.auth.userData.photoURL)
+  const name = useSelector((state: RootState) => state.auth.userData.name);
+  const photoURL = useSelector((state: RootState) => state.auth.userData.photoURL);
+  const jwt = useSelector((state: RootState) => state.auth.jwt);
+  const userName = userdata.name;
+
+  const response = useGetZegoTokenQuery();
+  // const providersListRes = useGetProvidersQuery();
+  const { data, isLoading, isSuccess } = useGetProfileQuery();
+
+  const handleLogout = async () => {
+    try {
+      await auth().signOut();
+    } catch (error) {
+      console.error("Error while logging out:", error);
+    }
+  };
+  useEffect(() => {
+    if (data) {
+      dispatch(
+        storeUserData({
+          name: data.firstName,
+          photoURL: data.pfp,
+          id: data.id.substring(0, 8),
+          // email: res.data.email,
+        })
+      );
+      userdata && console.log("😂" + JSON.stringify(userdata));
+    }
+  }, [data, isLoading]);
 
   useEffect(() => {
     try {
@@ -41,84 +73,122 @@ const Home = ({ navigation }) => {
         [ZIM, ZPNs],
         {
           ringtoneConfig: {
-            incomingCallFileName: 'rutu.mp3',
-            outgoingCallFileName: 'ringing.mp3',
+            incomingCallFileName: "rutu.mp3",
+            outgoingCallFileName: "ringing.mp3",
           },
-          // notifyWhenAppRunningInBackgroundOrQuit: true,
+          notifyWhenAppRunningInBackgroundOrQuit: true,
           androidNotificationConfig: {
             channelID: "AudioChannel",
             channelName: "CC",
           },
-        })
+        }
+      );
     } catch (error) {
-      console.error('Error initializing ZegoUIKitPrebuiltCallService:', error);
+      console.error("Error initializing ZegoUIKitPrebuiltCallService:", error);
     }
   }, []);
 
-
-
   return (
     <View style={{ backgroundColor: "white", height: "100%" }}>
-      <View
-        style={{
-          flexDirection: 'row',
-          padding: 16,
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: '#FADD9A',
-          marginBottom: 16,
-        }}>
-        <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
+      <View style={styles.header}>
+        <View style={styles.profileInfo}>
           <Avatar
             rounded
-            // showEditButton
-            size={'medium'}
-            avatarStyle={{ borderWidth: 3, borderColor: 'white' }}
-            source={{
-              uri: photoURL,
-            }}
+            size={"medium"}
+            avatarStyle={{ borderWidth: 3, borderColor: "white" }}
+            source={{ uri: data?.pfp }}
           />
           <View>
-            <Text style={{ fontWeight: 'bold', color: 'black' }}>Hi! {name}</Text>
-            <Text style={{ fontSize: 12, color: 'gray' }}>Your Credits: 12</Text>
+            <Text style={styles.boldText}>Hi! {data?.firstName}</Text>
+            <Text style={styles.greyText}>Total Credits Earned: {0}</Text>
           </View>
         </View>
         <Button
-          size={'sm'}
-          buttonStyle={{ paddingHorizontal: 20, backgroundColor: '#5E449B' }}
-          containerStyle={{ borderRadius: 50 }}
-          titleStyle={{ fontSize: 10 }}
-          title={'Buy Credits'}
+          size={"sm"}
+          buttonStyle={styles.buyCreditsButton}
+          containerStyle={styles.buyCreditsContainer}
+          titleStyle={styles.buyCreditsTitle}
+          title={"Sign Out"}
+          onPress={() => handleLogout()}
         />
       </View>
 
-      <ZegoSendCallInvitationButton
-        invitees={[{
-          userID: "1", userName: "Test User"
-        }]}
-        isVideoCall={false}
-        resourceID={"zego_data"} // Please fill in the resource ID name that has been configured in the ZEGOCLOUD's console here.
-      />
+      <View style={{ padding: 8 }}>
+
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
+          <Text style={{ fontWeight: "bold", color: "black" }}>Analytics</Text>
+          <Text style={{ fontSize: 12 }}>This month</Text>
+        </View>
+
+
+        <View style={{ flexDirection: 'row', gap: 12, marginVertical: 4 }}>
+          <View style={{ padding: 16, gap: 2, borderRadius: 8, backgroundColor: '#5E449B', flexGrow: 1 }}>
+            <Text style={{ fontSize: 11, color: 'silver' }}>Calls connected</Text>
+            <Text style={{ fontWeight: '800', color: 'white' }}>76</Text>
+          </View>
+
+          <View style={{ padding: 16, gap: 2, borderRadius: 8, backgroundColor: '#5E449B', flexGrow: 1 }}>
+            <Text style={{ fontSize: 11, color: 'silver' }}>Calls Duration</Text>
+            <Text style={{ fontWeight: '800', color: 'white' }}>232 minutes</Text>
+          </View>
+        </View>
+
+        <View style={{ flexDirection: 'row', gap: 12, marginVertical: 4 }}>
+          <View style={{ padding: 16, gap: 2, borderRadius: 8, backgroundColor: '#5E449B', flexGrow: 1 }}>
+            <Text style={{ fontSize: 11, color: 'silver' }}>Credits Earned</Text>
+            <Text style={{ fontWeight: '800', color: 'white' }}>4506</Text>
+          </View>
+
+          {/* <View style={{ padding: 16, gap: 2, borderRadius: 8, backgroundColor: '#5E449B', flexGrow: 1 }}>
+            <Text style={{ fontSize: 11, color: 'silver' }}>Calls Duration</Text>
+            <Text style={{ fontWeight: '800', color: 'white' }}>232 minutes</Text>
+          </View> */}
+        </View>
+
+      </View>
 
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  button: {
-    paddingHorizontal: 25,
-    paddingVertical: 4,
-    fontWeight: 'bold',
-    color: '#ffffff',
-    backgroundColor: '#0055cc',
-    margin: 5,
+  header: {
+    flexDirection: "row",
+    padding: 16,
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#FADD9A",
+    marginBottom: 16,
   },
-  main: { flex: 1, alignItems: 'center' },
-  scroll: { flex: 1, backgroundColor: '#ddeeff', width: '100%' },
-  scrollContainer: { alignItems: 'center' },
-  videoView: { width: '90%', height: 200 },
-  btnContainer: { flexDirection: 'row', justifyContent: 'center' },
-  head: { fontSize: 20 },
+  profileInfo: {
+    flexDirection: "row",
+    gap: 16,
+    alignItems: "center",
+  },
+  boldText: {
+    fontWeight: "bold",
+    color: "black",
+  },
+  greyText: {
+    fontSize: 12,
+    color: "gray",
+  },
+  buyCreditsButton: {
+    paddingHorizontal: 20,
+    backgroundColor: "#5E449B",
+  },
+  buyCreditsContainer: {
+    borderRadius: 50,
+  },
+  buyCreditsTitle: {
+    fontSize: 10,
+  },
+  activeUsers: {
+    paddingHorizontal: 16,
+  },
+  listItem: {
+    paddingVertical: 0,
+  },
 });
 
 export default Home;
