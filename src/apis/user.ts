@@ -21,7 +21,8 @@ export const userApi = createApi({
   endpoints: (builder) => ({
     getZegoToken: builder.query({ query: () => `zego` }),
     getProfile: builder.query({ query: () => `profile` }),
-    validateFirebaseToken: builder.mutation({ query: (body) => ({ url: `auth/validate-token`, method: 'POST', body }) }),
+    updateProfile: builder.mutation({ query: (body) => ({ url: `profile`, method: 'PATCH', body }) }),
+    validateFirebaseToken: builder.mutation({ query: (body) => ({ url: `auth/firebase`, method: 'POST', body }) }),
   }),
 })
 
@@ -30,5 +31,6 @@ export const userApi = createApi({
 export const {
   useGetZegoTokenQuery,
   useGetProfileQuery,
+  useUpdateProfileMutation,
   useValidateFirebaseTokenMutation,
 } = userApi

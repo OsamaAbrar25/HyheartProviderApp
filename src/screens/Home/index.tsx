@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { View, Text, StyleSheet, FlatList, AppState } from "react-native";
 import { Button, ListItem, Avatar, Switch } from "@rneui/themed";
 import Icon from "react-native-vector-icons/FontAwesome6";
 import auth from "@react-native-firebase/auth";
@@ -12,10 +12,11 @@ import {
   useGetZegoTokenQuery,
   useGetProvidersQuery,
   useGetProfileQuery,
+  useUpdateProfileMutation,
 } from "../../apis/user";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../store";
-import { AuthState, storeUserData } from "../../store/slices/authSlice";
+import { AuthState, removeJwt, storeUserData } from "../../store/slices/authSlice";
 
 interface HomeProps {
   navigation: any;
@@ -40,13 +41,42 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
   const jwt = useSelector((state: RootState) => state.auth.jwt);
   const userName = userdata.name;
 
+  console.log("🙌🙌😂😂💕💕", jwt);
+
+
   const response = useGetZegoTokenQuery();
   // const providersListRes = useGetProvidersQuery();
-  const { data, isLoading, isSuccess } = useGetProfileQuery();
+  const getProfile = useGetProfileQuery();
+  const [updateProfile, updateProfileRes] = useUpdateProfileMutation();
+
+  const [appState, setAppState] = useState(AppState.currentState);
+  const [isMounted, setIsMounted] = useState(true);
+
+  useEffect(() => {
+
+    const handleAppStateChange = (nextAppState) => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        setIsMounted(true);
+        updateProfile({ status: "ONLINE" })
+      } else if (appState === 'active' && nextAppState.match(/inactive|background/)) {
+        setIsMounted(false);
+        updateProfile({ status: "OFFLINE" })
+      }
+      setAppState(nextAppState);
+    };
+
+    AppState.addEventListener('change', handleAppStateChange);
+    return () => {
+      AppState.removeEventListener('change', handleAppStateChange);
+    };
+  }, []);
+
+  console.log("Mount Status: ", isMounted);
 
   const handleLogout = async () => {
     try {
       await auth().signOut();
+      dispatch(removeJwt())
     } catch (error) {
       console.error("Error while logging out:", error);
     }
@@ -54,21 +84,22 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
   const toggleSwitch = () => {
     setChecked(!checked);
+    // updateProfile({})
   };
 
   useEffect(() => {
-    if (data) {
+    if (getProfile.data) {
       dispatch(
         storeUserData({
-          name: data.firstName,
-          photoURL: data.pfp,
-          id: data.id.substring(0, 8),
+          name: getProfile.data.firstName,
+          photoURL: getProfile.data.pfp,
+          id: getProfile.data.id.substring(0, 8),
           // email: res.data.email,
         })
       );
       userdata && console.log("😂" + JSON.stringify(userdata));
     }
-  }, [data, isLoading]);
+  }, [getProfile.data, getProfile.isLoading]);
 
   useEffect(() => {
     try {
@@ -103,10 +134,10 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
             rounded
             size={"medium"}
             avatarStyle={{ borderWidth: 3, borderColor: "white" }}
-            source={{ uri: data?.pfp }}
+            source={{ uri: getProfile.data?.pfp }}
           />
           <View>
-            <Text style={styles.boldText}>Hi! {data?.firstName}</Text>
+            <Text style={styles.boldText}>Hi! {getProfile.data?.firstName}</Text>
             <Text style={styles.greyText}>Total Credits Earned: {0}</Text>
           </View>
         </View>
@@ -123,16 +154,17 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
       <View style={{ padding: 8 }}>
 
         <View style={{ padding: 16, marginBottom: 16, borderWidth: 2, borderRadius: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Text>Visibilty</Text>
+          <Text style={{ color: 'black' }}>Visibilty</Text>
           <Switch
             value={checked}
-            onValueChange={(value) => setChecked(value)}
+            // onValueChange={(value) => setChecked(value)}
+            onValueChange={toggleSwitch}
           />
         </View>
 
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 }}>
           <Text style={{ fontWeight: "bold", color: "black" }}>Analytics</Text>
-          <Text style={{ fontSize: 12 }}>This month</Text>
+          <Text style={{ fontSize: 12, color: "gray" }}>This month</Text>
         </View>
 
 
